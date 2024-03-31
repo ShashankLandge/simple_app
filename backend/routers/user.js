@@ -5,8 +5,26 @@ const router = express.Router();
 const zod = require("zod");
 const { User } = require("../db.js");
 const jwt = require("jsonwebtoken");
-const { JWT_SECRET } = require("../config.js");
+const { JWT_SECRET, URL } = require("../config.js");
 const { authMiddleware } = require("../middleware.js");
+const { default: mongoose } = require("mongoose");
+
+async function connectToDb() {
+  try {
+    await mongoose.connect(
+      "mongodb+srv://admin:root@simpleapp.10wgzur.mongodb.net/your-database-name",
+      {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      }
+    );
+    console.log("Connected to MongoDB");
+  } catch (err) {
+    console.error("Error connecting to MongoDB:", err);
+  }
+}
+
+connectToDb();
 
 const signupBody = zod.object({
   username: zod.string().email(),
@@ -25,7 +43,7 @@ router.post("/signup", async (req, res) => {
   const { success } = signupBody.safeParse(req.body);
   if (!success) {
     return res.status(411).json({
-      message: "Email already taken / Incorrect inputs",
+      message: "Incorrect inputs",
     });
   }
 
@@ -35,7 +53,7 @@ router.post("/signup", async (req, res) => {
 
   if (existingUser) {
     return res.status(411).json({
-      message: "Email already taken/Incorrect inputs",
+      message: "Email already taken",
     });
   }
 
